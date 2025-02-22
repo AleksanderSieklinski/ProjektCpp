@@ -1,50 +1,67 @@
-#include <iostream>
 #include "mouse.h"
-#include "maze.h"
 
-// Entry point of the Micromouse simulation application
 int main() {
-    // Initialize the maze and mouse objects with appropriate parameters
-    Maze maze(16, 16); // Example dimensions for the maze
-    Mouse mouse(maze);
-
-    // Set up the maze layout
+    Maze maze(16, 16);
+    Logger<std::string> logger("../micromouse.log");
+    Logger<std::string> sensorlogger("../micromousesensor.log");
+    Mouse mouse(maze, logger);
     maze.generateMaze();
+    maze.printMaze(mouse.getPosition());
 
-    // Initialize the mouse parameters
-    mouse.setParameters(1, 5); // Example parameters: speed = 1, sensorRange = 5
+    // Exploration phase
+    int maxMoves = 300;
+    int moveCount = 0;
 
-    // Start the simulation loop
-    int i = 0;
-    while (i < 6) {
-        // Create sensor data based on the mouse's current position
+    while (!maze.isMazeSolved(mouse.getPosition()) && moveCount < maxMoves) {
         Position position = mouse.getPosition();
-        std::cout << "Mouse position: (" << position.x << ", " << position.y << ")" << std::endl;
         SensorData sensorData = {
-            !maze.isMoveValid(position.x, position.y + 1), // Front obstacle (moving up)
-            !maze.isMoveValid(position.x - 1, position.y), // Left obstacle
-            !maze.isMoveValid(position.x + 1, position.y), // Right obstacle
-            !maze.isMoveValid(position.x, position.y - 1)  // Back obstacle (moving down)
+            !maze.isMoveValid(position.x, position.y + 1),
+            !maze.isMoveValid(position.x - 1, position.y),
+            !maze.isMoveValid(position.x + 1, position.y),
+            !maze.isMoveValid(position.x, position.y - 1)
         };
-
-        // Print the sensor data
-        std::cout << "Sensor Data - Front: " << sensorData.frontObstacle
-                  << ", Left: " << sensorData.leftObstacle
-                  << ", Right: " << sensorData.rightObstacle
-                  << ", Back: " << sensorData.backObstacle << std::endl;
-
-        // Print the maze layout
-        maze.printMaze(position);
-
-        // Make a decision based on the current sensor data
+        sensorlogger.logData("Sensor Data - Down: " + std::to_string(sensorData.frontObstacle) +
+                       ", Left: " + std::to_string(sensorData.leftObstacle) +
+                       ", Right: " + std::to_string(sensorData.rightObstacle) +
+                       ", Up: " + std::to_string(sensorData.backObstacle));
         mouse.makeDecision(sensorData);
-
-        // Log the current state of the simulation
-        position = mouse.getPosition();
-        std::cout << "Mouse position: (" << position.x << ", " << position.y << ")" << std::endl;
-        i++;
+        moveCount++;
     }
+    logger.logData("Exploration phase completed.");
+    // Calculate the shortest path based on exploration data
+    mouse.calculateShortestPath();
+    std::vector<Position> shortestPath = mouse.getPath();
 
+    // Return to start
+    std::vector<Position> returnPath = mouse.findPath(mouse.getPosition(), {0, 0});
+    Position currentPos = mouse.getPosition();
+    for (const Position& pos : returnPath) {
+        Direction dir = mouse.getDirection(currentPos, pos);
+        mouse.move(dir);
+        currentPos = pos;
+    }
+    logger.logData("Mouse returned to start position.");
+
+    // Final attempt using the shortest path
+    currentPos = {0, 0};
+    if (!shortestPath.empty()) {
+        std::cout << "Shortest path: ";
+        for (const Position& pos : shortestPath) {
+            std::cout << "(" << pos.x << ", " << pos.y << ") ";
+        }
+        std::cout << std::endl;
+
+        for (const Position& pos : shortestPath) {
+            Direction dir = mouse.getDirection(currentPos, pos);
+            mouse.move(dir);
+            currentPos = pos;
+            if (maze.isMazeSolved(mouse.getPosition())) {
+                break;
+            }
+        }
+    } else {
+        std::cout << "No shortest path found." << std::endl;
+    }
     std::cout << "Maze solved!" << std::endl;
     return 0;
 }

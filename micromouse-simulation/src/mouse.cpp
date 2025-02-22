@@ -1,66 +1,149 @@
 #include "mouse.h"
-#include <iostream>
 
-// Constructor to initialize the Mouse with default parameters
-Mouse::Mouse(const Maze& maze) : speed(1), sensorRange(5), position({0, 0}), maze(maze) {}
+Mouse::Mouse(const Maze& maze, Logger<std::string>& logger) : position({0, 0}), maze(maze), logger(logger) {}
 
-// Method to move the mouse in a specified direction
 void Mouse::move(Direction dir) {
-    int newX = position.x;
-    int newY = position.y;
-
     switch (dir) {
         case Direction::UP:
-            newY += speed;
+            position.y += 1;
             break;
         case Direction::DOWN:
-            newY -= speed;
+            position.y -= 1;
             break;
         case Direction::LEFT:
-            newX -= speed;
+            position.x -= 1;
             break;
         case Direction::RIGHT:
-            newX += speed;
+            position.x += 1;
             break;
     }
-
-    if (isMoveValid(newX, newY)) {
-        position.x = newX;
-        position.y = newY;
-        std::cout << "Mouse moved to position: (" << position.x << ", " << position.y << ")\n";
-    } else {
-        std::cout << "Invalid move to position: (" << newX << ", " << newY << ")\n";
-    }
+    logger.logData("Mouse moved to position: (" + std::to_string(position.x) + ", " + std::to_string(position.y) + ")");
+    path.push_back(position);
+    explorationPath.push_back(position);
 }
 
-// Method to make a decision based on sensor data
 void Mouse::makeDecision(const SensorData& data) {
-    // Simple decision-making logic based on sensor readings
-    if (!data.frontObstacle && isMoveValid(position.x, position.y + speed)) {
-        move(Direction::UP);
-    } else if (!data.rightObstacle && isMoveValid(position.x + speed, position.y)) {
-        move(Direction::RIGHT);
-    } else if (!data.leftObstacle && isMoveValid(position.x - speed, position.y)) {
-        move(Direction::LEFT);
-    } else if (!data.backObstacle && isMoveValid(position.x, position.y - speed)) {
-        move(Direction::DOWN);
-    } else {
-        std::cout << "No valid moves available.\n";
+    Position start = position;
+    Position goal = maze.getDestination();
+
+    obstacles.push_back(data);
+
+    path = findPath(start, goal);
+
+    if (!path.empty()) {
+        Position next_move = path.front();
+        path.erase(path.begin());
+        if (next_move.x > position.x) {
+            move(Direction::RIGHT);
+        } else if (next_move.x < position.x) {
+            move(Direction::LEFT);
+        } else if (next_move.y > position.y) {
+            move(Direction::UP);
+        } else if (next_move.y < position.y) {
+            move(Direction::DOWN);
+        }
     }
 }
 
-// Method to set parameters for the mouse
-void Mouse::setParameters(int speed, int sensorRange) {
-    this->speed = speed;
-    this->sensorRange = sensorRange;
-}
-
-// Method to get the current position of the mouse
 Position Mouse::getPosition() const {
     return position;
 }
 
-// Method to check if a move is valid
+std::vector<Position> Mouse::getPath() const {
+    return path;
+}
+
 bool Mouse::isMoveValid(int x, int y) const {
     return maze.isMoveValid(x, y);
+}
+
+std::vector<Position> Mouse::findPath(const Position& start, const Position& goal) {
+    std::queue<Position> frontier;
+    frontier.push(start);
+
+    std::unordered_map<Position, Position> came_from;
+    came_from[start] = start;
+
+    while (!frontier.empty()) {
+        Position current = frontier.front();
+        frontier.pop();
+
+        if (current == goal) {
+            break;
+        }
+
+        std::vector<Position> neighbors = {
+            {current.x, current.y + 1}, // Up
+            {current.x + 1, current.y}, // Right
+            {current.x, current.y - 1}, // Down
+            {current.x - 1, current.y}  // Left
+        };
+
+        for (const Position& next : neighbors) {
+            if (!isMoveValid(next.x, next.y)) continue;
+
+            if (came_from.find(next) == came_from.end()) {
+                frontier.push(next);
+                came_from[next] = current;
+            }
+        }
+    }
+
+    std::vector<Position> path;
+    Position current = goal;
+    while (current != start) {
+        path.push_back(current);
+        current = came_from[current];
+    }
+    std::reverse(path.begin(), path.end());
+    return path;
+}
+
+Direction Mouse::getDirection(const Position& from, const Position& to) const {
+    if (to.x > from.x) return Direction::RIGHT;
+    if (to.x < from.x) return Direction::LEFT;
+    if (to.y > from.y) return Direction::UP;
+    if (to.y < from.y) return Direction::DOWN;
+    throw std::invalid_argument("Invalid direction");
+}
+
+void Mouse::calculateShortestPath() {
+    std::queue<Position> frontier;
+    frontier.push({0, 0});
+
+    std::unordered_map<Position, Position> came_from;
+    came_from[{0, 0}] = {0, 0};
+
+    while (!frontier.empty()) {
+        Position current = frontier.front();
+        frontier.pop();
+
+        if (current == maze.getDestination()) {
+            break;
+        }
+
+        std::vector<Position> neighbors = {
+            {current.x, current.y + 1}, // Up
+            {current.x + 1, current.y}, // Right
+            {current.x, current.y - 1}, // Down
+            {current.x - 1, current.y}  // Left
+        };
+
+        for (const Position& next : neighbors) {
+            if (!isMoveValid(next.x, next.y)) continue;
+
+            if (came_from.find(next) == came_from.end()) {
+                frontier.push(next);
+                came_from[next] = current;
+            }
+        }
+    }
+
+    path.clear();
+    Position current = maze.getDestination();
+    while (current != Position{0, 0}) {
+        path.push_back(current);
+        current = came_from[current];
+    }
+    std::reverse(path.begin(), path.end());
 }
