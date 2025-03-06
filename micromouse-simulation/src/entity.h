@@ -3,6 +3,10 @@
 
 #include "position.h"
 
+/**
+ * @enum Direction
+ * @brief Represents the direction an entity can move.
+ */
 enum class Direction {
     UP,
     DOWN,
@@ -10,13 +14,16 @@ enum class Direction {
     RIGHT
 };
 
+/**
+ * @struct SensorData
+ * @brief Represents sensor data for the mouse.
+ */
 struct SensorData {
     bool frontObstacle;
     bool leftObstacle;
     bool rightObstacle;
     bool backObstacle;
 };
-
 /**
  * @class Entity
  * @brief Base class for all entities in the maze.

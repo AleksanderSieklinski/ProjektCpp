@@ -17,7 +17,7 @@ public:
      * @param maze The maze the mouse is navigating.
      * @param logger The logger for logging mouse actions.
      */
-    Mouse(const Maze& maze, Logger<std::string>& logger);
+    Mouse(const Maze& maze, Logger<std::string>& logger, Maze& knownMaze);
 
     /**
      * @brief Makes a decision based on sensor data.
@@ -67,6 +67,7 @@ public:
 protected:
     Position position; ///< The current position of the mouse
     const Maze& maze; ///< The maze the mouse is navigating
+    Maze& knownMaze; ///< The maze layout known to the mouse
     Logger<std::string>& logger; ///< The logger for logging mouse actions
     std::vector<Position> path; ///< The shortest path found during exploration
     std::vector<Position> explorationPath; ///< The path taken during exploration

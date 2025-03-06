@@ -1,6 +1,9 @@
 #include "mouse.h"
 
-Mouse::Mouse(const Maze& maze, Logger<std::string>& logger) : position({0, 0}), maze(maze), logger(logger) {}
+Mouse::Mouse(const Maze& maze, Logger<std::string>& logger, Maze& knownMaze) : position({0, 0}), maze(maze), logger(logger), knownMaze(knownMaze) {
+    path.push_back(position);
+    explorationPath.push_back(position);
+}
 
 void Mouse::move(Direction dir) {
     switch (dir) {
@@ -27,6 +30,20 @@ void Mouse::makeDecision(const SensorData& data) {
     Position goal = maze.getDestination();
 
     obstacles.push_back(data);
+    if(data.frontObstacle) {
+        knownMaze.addWall(position.x, position.y + 1);
+    }
+    if(data.leftObstacle) {
+        knownMaze.addWall(position.x - 1, position.y);
+    }
+    if(data.rightObstacle) {
+        knownMaze.addWall(position.x + 1, position.y);
+    }
+    if(data.backObstacle) {
+        knownMaze.addWall(position.x, position.y - 1);
+    }
+    knownMaze.printMaze(position);
+    std::cout << std::endl << std::endl;
 
     path = findPath(start, goal);
 
@@ -54,7 +71,7 @@ std::vector<Position> Mouse::getPath() const {
 }
 
 bool Mouse::isMoveValid(int x, int y) const {
-    return maze.isMoveValid(x, y);
+    return knownMaze.isMoveValid(x, y);
 }
 
 std::vector<Position> Mouse::findPath(const Position& start, const Position& goal) {

@@ -23,6 +23,18 @@ public:
     void generateMaze();
 
     /**
+    *  @brief Generates an empty maze layout.
+    */
+    void generateEmptyMaze();
+
+    /**
+    *  @brief Adds a wall to the maze layout.
+    *  @param x The x coordinate of the wall.
+    *  @param y The y coordinate of the wall.
+    */
+    void addWall(int x, int y);
+
+    /**
      * @brief Checks if a move is valid.
      * @param x The x coordinate of the move.
      * @param y The y coordinate of the move.
@@ -54,6 +66,19 @@ public:
      * @return The destination position.
      */
     Position getDestination() const;
+
+    /**
+     * @brief Uploads a custom maze layout.
+     * @param customLayout The custom maze layout.
+     * @return True if the upload was successful, false otherwise.
+     */
+    bool uploadMazeLayout(const std::vector<std::vector<int>>& customLayout);
+    /**
+     * @brief Change the destination of the maze.
+     * @param x The x coordinate of the destination.
+     * @param y The y coordinate of the destination.
+     */
+    void setDestination(int x, int y);
 
 protected:
     int width; ///< The width of the maze
