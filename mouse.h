@@ -4,7 +4,7 @@
 #include "../../QT/cpp/maze.h"
 #include "entity.h"
 #include "logger.h"
-#include <stack>
+#include <queue>
 
 /**
  * @class Mouse
@@ -63,6 +63,14 @@ public:
      * @brief Calculates the shortest path based on exploration data.
      */
     void calculateShortestPath();
+
+    /**
+     * @brief Resets the mouse to its initial state.
+     * @param maze The maze the mouse is navigating.
+     * @param logger The logger for logging mouse actions.
+     * @param knownMaze The maze layout known to the mouse.
+     */
+    void reset(const Maze& maze, Logger<std::string>& logger, Maze& knownMaze);
 
 protected:
     Position position; ///< The current position of the mouse

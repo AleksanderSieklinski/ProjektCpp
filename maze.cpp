@@ -1,7 +1,7 @@
 #include "maze.h"
 
 Maze::Maze(int width, int height) : width(width), height(height) {
-    mazeLayout.resize(height, std::vector<int>(width, 1)); // 1 represents a wall
+    mazeLayout.resize(height, std::vector<int>(width, 1));
     generateMaze();
 }
 
@@ -54,6 +54,7 @@ Maze::Maze(int width, int height) : width(width), height(height) {
 //        }
 //    }
 //} dfs, dziala
+
 void Maze::generateMaze() {
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
     std::vector<std::pair<int, int>> walls;

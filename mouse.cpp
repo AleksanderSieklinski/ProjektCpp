@@ -1,5 +1,4 @@
 #include "mouse.h"
-#include <queue>
 
 Mouse::Mouse(const Maze& maze, Logger<std::string>& logger, Maze& knownMaze) : position({0, 0}), maze(maze), logger(logger), knownMaze(knownMaze) {
     path.push_back(position);
@@ -43,8 +42,6 @@ void Mouse::makeDecision(const SensorData& data) {
     if(data.backObstacle) {
         knownMaze.addWall(position.x, position.y - 1);
     }
-    knownMaze.printMaze(position);
-    std::cout << std::endl << std::endl;
 
     path = findPath(start, goal);
 
@@ -164,4 +161,14 @@ void Mouse::calculateShortestPath() {
         current = came_from[current];
     }
     std::reverse(path.begin(), path.end());
+}
+
+void Mouse::reset(const Maze& maze, Logger<std::string>& logger, Maze& knownMaze) {
+    this->position = {0, 0};
+    this->path.clear();
+    this->explorationPath.clear();
+    this->obstacles.clear();
+    knownMaze.generateEmptyMaze();
+    path.push_back(position);
+    explorationPath.push_back(position);
 }
