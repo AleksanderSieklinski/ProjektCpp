@@ -1,10 +1,11 @@
 #ifndef MOUSE_H
 #define MOUSE_H
 
-#include "../../QT/cpp/maze.h"
+#include "maze.h"
 #include "entity.h"
 #include "logger.h"
 #include <queue>
+#include <set>
 
 /**
  * @class Mouse
@@ -66,11 +67,22 @@ public:
 
     /**
      * @brief Resets the mouse to its initial state.
-     * @param maze The maze the mouse is navigating.
-     * @param logger The logger for logging mouse actions.
-     * @param knownMaze The maze layout known to the mouse.
      */
-    void reset(const Maze& maze, Logger<std::string>& logger, Maze& knownMaze);
+    void reset();
+
+    /**
+     * @brief Traverses the maze in a loop until conditions are met.
+        * @param sensorlogger The logger for logging sensor data.
+        * @param hasMaxMoves Whether the mouse has a maximum number of moves.
+     */
+    int walkMaze(Logger<std::string> &sensorlogger, bool hasMaxMoves = false);
+
+    /**
+     * @brief Traverses a single step in the maze.
+        * @param sensorlogger The logger for logging sensor data.
+        * @param visitedFields The set of visited fields.
+     */
+    void walkMazeStep(Logger<std::string> &sensorlogger, std::set<Position, std::less<Position>>& visitedFields);
 
 protected:
     Position position; ///< The current position of the mouse

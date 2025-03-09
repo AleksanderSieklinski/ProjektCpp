@@ -3,6 +3,7 @@
 
 #include "position.h"
 #include <random>
+#include <stack>
 
 /**
  * @class Maze
@@ -18,9 +19,14 @@ public:
     Maze(int width, int height);
 
     /**
-     * @brief Generates the maze layout.
+     * @brief Generates the maze layout using the prim algorithm.
      */
-    void generateMaze();
+    void generateMazePrim();
+
+    /**
+    * @brief Generates the maze layout using the dfs algorithm.
+    */
+    void generateMazeDfs();
 
     /**
     *  @brief Generates an empty maze layout.

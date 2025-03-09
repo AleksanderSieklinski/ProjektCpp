@@ -1,13 +1,7 @@
 #include "mainwindow.h"
-#include "mouse.h"
-#include "maze.h"
-#include "logger.h"
-#include <QApplication>
-#include <QTimer>
-#include <set>
-
-Maze maze(7, 7);
-Maze emptyMaze(7, 7);
+#define MAZE_SIZE 4
+Maze maze(MAZE_SIZE, MAZE_SIZE);
+Maze emptyMaze(MAZE_SIZE, MAZE_SIZE);
 Logger<std::string> logger("../micromouse.log");
 Logger<std::string> sensorlogger("../micromousesensor.log");
 Mouse mouse(maze, logger, emptyMaze);
@@ -39,7 +33,7 @@ int main(int argc, char *argv[]) {
         originalDestination = maze.getDestination();
         visitedFields.insert(mouse.getPosition());
         visitedFields.clear();
-        explorationTimer->start(1000);
+        explorationTimer->start(250);
     });
 
     QObject::connect(w.getStopButton(), &QPushButton::clicked, [&]() {
@@ -57,27 +51,15 @@ int main(int argc, char *argv[]) {
         pathIndex = 0;
     });
 
-    QObject::connect(explorationTimer, &QTimer::timeout, [&, moveCount]() mutable {
+    QObject::connect(explorationTimer, &QTimer::timeout, [&]() {
         if (!w.isExploring() || maze.isMazeSolved(mouse.getPosition()) || moveCount >= 300) {
             explorationTimer->stop();
             logger.logData("Exploration phase completed.");
             w.updateStatusLabel(SimulationState::Returning);
-            returningTimer->start(1000);
+            returningTimer->start(250);
             return;
         }
-        Position position = mouse.getPosition();
-        visitedFields.insert(mouse.getPosition());
-        SensorData sensorData = {
-            !maze.isMoveValid(position.x, position.y + 1),
-            !maze.isMoveValid(position.x - 1, position.y),
-            !maze.isMoveValid(position.x + 1, position.y),
-            !maze.isMoveValid(position.x, position.y - 1)
-        };
-        sensorlogger.logData("Sensor Data - Down: " + std::to_string(sensorData.frontObstacle) +
-                             ", Left: " + std::to_string(sensorData.leftObstacle) +
-                             ", Right: " + std::to_string(sensorData.rightObstacle) +
-                             ", Up: " + std::to_string(sensorData.backObstacle));
-        mouse.makeDecision(sensorData);
+        mouse.walkMazeStep(sensorlogger, visitedFields);
         w.drawMaze(maze.getMazeLayout(), mouse.getPosition(), maze.getDestination());
         w.updatePositionLabel(mouse.getPosition());
         w.updateVisitedLabel(visitedFields.size());
@@ -92,31 +74,17 @@ int main(int argc, char *argv[]) {
             w.updateStatusLabel(SimulationState::Running);
             maze.setDestination(originalDestination.x, originalDestination.y);
             mouse.calculateShortestPath();
-            runningTimer->start(1000);
+            runningTimer->start(250);
             return;
         }
-        Position position = mouse.getPosition();
-        visitedFields.insert(mouse.getPosition());
-        SensorData sensorData = {
-            !maze.isMoveValid(position.x, position.y + 1),
-            !maze.isMoveValid(position.x - 1, position.y),
-            !maze.isMoveValid(position.x + 1, position.y),
-            !maze.isMoveValid(position.x, position.y - 1)
-        };
-        sensorlogger.logData("Sensor Data - Down: " + std::to_string(sensorData.frontObstacle) +
-                             ", Left: " + std::to_string(sensorData.leftObstacle) +
-                             ", Right: " + std::to_string(sensorData.rightObstacle) +
-                             ", Up: " + std::to_string(sensorData.backObstacle));
-        mouse.makeDecision(sensorData);
+        mouse.walkMazeStep(sensorlogger, visitedFields);
         w.drawMaze(maze.getMazeLayout(), mouse.getPosition(), maze.getDestination());
         w.updatePositionLabel(mouse.getPosition());
         w.updateVisitedLabel(visitedFields.size());
     });
 
     QObject::connect(runningTimer, &QTimer::timeout, [&]() {
-        std::vector<Position> shortestPath = mouse.getPath();
-        Position currentPos = mouse.getPosition();
-        if (!w.isExploring() || pathIndex >= shortestPath.size() || maze.isMazeSolved(mouse.getPosition())) {
+        if (!w.isExploring() || maze.isMazeSolved(mouse.getPosition())) {
             runningTimer->stop();
             logger.logData("Maze solved!");
             w.updateStatusLabel(SimulationState::Finished);
@@ -125,10 +93,7 @@ int main(int argc, char *argv[]) {
             w.getStopButton()->setEnabled(false);
             return;
         }
-        Direction dir = mouse.getDirection(currentPos, shortestPath[pathIndex]);
-        mouse.move(dir);
-        currentPos = shortestPath[pathIndex];
-        pathIndex++;
+        mouse.walkMazeStep(sensorlogger, visitedFields);
         w.drawMaze(maze.getMazeLayout(), mouse.getPosition(), maze.getDestination());
         w.updatePositionLabel(mouse.getPosition());
         w.updateVisitedLabel(visitedFields.size());

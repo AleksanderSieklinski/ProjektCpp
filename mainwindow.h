@@ -1,7 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "maze.h"
 #include "mouse.h"
 #include <QMainWindow>
 #include <QGraphicsView>
@@ -11,6 +10,12 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QTimer>
+#include <QApplication>
+#include <QGraphicsRectItem>
+#include <QPixmap>
+#include <QGraphicsPixmapItem>
+#include <QFont>
+#include <QPalette>
 
 /** 
 * @brief Enum class for the state of the simulation
@@ -110,6 +115,11 @@ public slots:
     * @brief Resets the data of the main window and simulation.
     */
     void resetData();
+    /**
+    * @brief Gets the current state of the simulation.
+    * @return The current state of the simulation.
+    */
+    SimulationState getCurrentState();
 
 private:
     QGraphicsView *view; ///< The view for the maze.
@@ -125,6 +135,7 @@ private:
     int elapsedTime; ///< The time elapsed since the start of the simulation.
     int moveCount; ///< The number of moves made by the mouse.
     bool exploring; ///< Flag indicating whether the mouse is moving inside the maze.
+    SimulationState currentState; ///< The current state of the simulation
     Maze &maze; ///< The maze the mouse is navigating.
     Maze &emptyMaze; ///< The empty maze for generating new mazes.
     Logger<std::string> &logger; ///< The logger for logging mouse actions.

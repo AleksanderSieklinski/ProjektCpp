@@ -163,12 +163,48 @@ void Mouse::calculateShortestPath() {
     std::reverse(path.begin(), path.end());
 }
 
-void Mouse::reset(const Maze& maze, Logger<std::string>& logger, Maze& knownMaze) {
+void Mouse::reset() {
     this->position = {0, 0};
     this->path.clear();
     this->explorationPath.clear();
     this->obstacles.clear();
-    knownMaze.generateEmptyMaze();
+    this->knownMaze.generateEmptyMaze();
     path.push_back(position);
     explorationPath.push_back(position);
+}
+
+int Mouse::walkMaze(Logger<std::string> &sensorlogger, bool hasMaxMoves) {
+    int moveCount = 0;
+    while (!maze.isMazeSolved(this->getPosition()) && (hasMaxMoves ? true : (moveCount < 300))) {
+        Position position = this->getPosition();
+        SensorData sensorData = {
+            !maze.isMoveValid(position.x, position.y + 1),
+            !maze.isMoveValid(position.x - 1, position.y),
+            !maze.isMoveValid(position.x + 1, position.y),
+            !maze.isMoveValid(position.x, position.y - 1)
+        };
+        sensorlogger.logData("Sensor Data - Down: " + std::to_string(sensorData.frontObstacle) +
+                             ", Left: " + std::to_string(sensorData.leftObstacle) +
+                             ", Right: " + std::to_string(sensorData.rightObstacle) +
+                             ", Up: " + std::to_string(sensorData.backObstacle));
+        this->makeDecision(sensorData);
+        moveCount++;
+    }
+    return moveCount;
+}
+
+void Mouse::walkMazeStep(Logger<std::string> &sensorlogger, std::set<Position, std::less<Position>>& visitedFields) {
+    Position position = this->getPosition();
+    SensorData sensorData = {
+        !maze.isMoveValid(position.x, position.y + 1),
+        !maze.isMoveValid(position.x - 1, position.y),
+        !maze.isMoveValid(position.x + 1, position.y),
+        !maze.isMoveValid(position.x, position.y - 1)
+    };
+    sensorlogger.logData("Sensor Data - Down: " + std::to_string(sensorData.frontObstacle) +
+                         ", Left: " + std::to_string(sensorData.leftObstacle) +
+                         ", Right: " + std::to_string(sensorData.rightObstacle) +
+                         ", Up: " + std::to_string(sensorData.backObstacle));
+    this->makeDecision(sensorData);
+    visitedFields.insert(this->getPosition());
 }
