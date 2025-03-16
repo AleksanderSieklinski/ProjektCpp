@@ -24,11 +24,6 @@ public:
     void generateMazePrim();
 
     /**
-    * @brief Generates the maze layout using the dfs algorithm.
-    */
-    void generateMazeDfs();
-
-    /**
     *  @brief Generates an empty maze layout.
     */
     void generateEmptyMaze();

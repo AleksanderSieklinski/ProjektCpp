@@ -2,7 +2,6 @@
 
 Mouse::Mouse(const Maze& maze, Logger<std::string>& logger, Maze& knownMaze) : position({0, 0}), maze(maze), logger(logger), knownMaze(knownMaze) {
     path.push_back(position);
-    explorationPath.push_back(position);
 }
 
 void Mouse::move(Direction dir) {
@@ -22,7 +21,6 @@ void Mouse::move(Direction dir) {
     }
     logger.logData("Mouse moved to position: (" + std::to_string(position.x) + ", " + std::to_string(position.y) + ")");
     path.push_back(position);
-    explorationPath.push_back(position);
 }
 
 void Mouse::makeDecision(const SensorData& data) {
@@ -64,14 +62,6 @@ Position Mouse::getPosition() const {
     return position;
 }
 
-std::vector<Position> Mouse::getPath() const {
-    return path;
-}
-
-bool Mouse::isMoveValid(int x, int y) const {
-    return knownMaze.isMoveValid(x, y);
-}
-
 std::vector<Position> Mouse::findPath(const Position& start, const Position& goal) {
     std::queue<Position> frontier;
     frontier.push(start);
@@ -95,7 +85,7 @@ std::vector<Position> Mouse::findPath(const Position& start, const Position& goa
         };
 
         for (const Position& next : neighbors) {
-            if (!isMoveValid(next.x, next.y)) continue;
+            if (!knownMaze.isMoveValid(next.x, next.y)) continue;
 
             if (came_from.find(next) == came_from.end()) {
                 frontier.push(next);
@@ -112,14 +102,6 @@ std::vector<Position> Mouse::findPath(const Position& start, const Position& goa
     }
     std::reverse(path.begin(), path.end());
     return path;
-}
-
-Direction Mouse::getDirection(const Position& from, const Position& to) const {
-    if (to.x > from.x) return Direction::RIGHT;
-    if (to.x < from.x) return Direction::LEFT;
-    if (to.y > from.y) return Direction::UP;
-    if (to.y < from.y) return Direction::DOWN;
-    throw std::invalid_argument("Invalid direction");
 }
 
 void Mouse::calculateShortestPath() {
@@ -145,7 +127,7 @@ void Mouse::calculateShortestPath() {
         };
 
         for (const Position& next : neighbors) {
-            if (!isMoveValid(next.x, next.y)) continue;
+            if (!knownMaze.isMoveValid(next.x, next.y)) continue;
 
             if (came_from.find(next) == came_from.end()) {
                 frontier.push(next);
@@ -166,31 +148,9 @@ void Mouse::calculateShortestPath() {
 void Mouse::reset() {
     this->position = {0, 0};
     this->path.clear();
-    this->explorationPath.clear();
     this->obstacles.clear();
     this->knownMaze.generateEmptyMaze();
     path.push_back(position);
-    explorationPath.push_back(position);
-}
-
-int Mouse::walkMaze(Logger<std::string> &sensorlogger, bool hasMaxMoves) {
-    int moveCount = 0;
-    while (!maze.isMazeSolved(this->getPosition()) && (hasMaxMoves ? true : (moveCount < 300))) {
-        Position position = this->getPosition();
-        SensorData sensorData = {
-            !maze.isMoveValid(position.x, position.y + 1),
-            !maze.isMoveValid(position.x - 1, position.y),
-            !maze.isMoveValid(position.x + 1, position.y),
-            !maze.isMoveValid(position.x, position.y - 1)
-        };
-        sensorlogger.logData("Sensor Data - Down: " + std::to_string(sensorData.frontObstacle) +
-                             ", Left: " + std::to_string(sensorData.leftObstacle) +
-                             ", Right: " + std::to_string(sensorData.rightObstacle) +
-                             ", Up: " + std::to_string(sensorData.backObstacle));
-        this->makeDecision(sensorData);
-        moveCount++;
-    }
-    return moveCount;
 }
 
 void Mouse::walkMazeStep(Logger<std::string> &sensorlogger, std::set<Position, std::less<Position>>& visitedFields) {

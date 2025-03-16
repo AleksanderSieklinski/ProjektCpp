@@ -7,19 +7,43 @@
 /**
  * @class Logger
  * @brief A class to handle logging of simulation data.
+ * 
+ * This class provides functionality to log data to a file and read the log file.
+ * 
+ * @tparam T The type of data to be logged.
  */
 template <typename T>
 class Logger {
 public:
+    /**
+     * @brief Constructs a Logger object.
+     * 
+     * This constructor initializes the Logger with the specified log file path.
+     * It removes any existing log file and opens a new log file for appending data.
+     * 
+     * @param logFilePath The path to the log file.
+     */
     Logger(const std::string& logFilePath);
 
+    /**
+     * @brief Logs data to the log file.
+     * 
+     * This function writes the specified data to the log file.
+     * 
+     * @param data The data to be logged.
+     */
     void logData(const T& data);
 
+    /**
+     * @brief Reads and prints the log file.
+     * 
+     * This function reads the log file and prints its contents to the standard output.
+     */
     void readLog() const;
 
 private:
-    std::string logFilePath;
-    std::ofstream logFile;
+    std::string logFilePath; ///< The path to the log file.
+    std::ofstream logFile; ///< The output file stream for the log file.
 };
 
 template <typename T>

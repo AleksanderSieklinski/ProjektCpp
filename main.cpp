@@ -1,5 +1,5 @@
 #include "mainwindow.h"
-#define MAZE_SIZE 4
+#define MAZE_SIZE 16
 Maze maze(MAZE_SIZE, MAZE_SIZE);
 Maze emptyMaze(MAZE_SIZE, MAZE_SIZE);
 Logger<std::string> logger("../micromouse.log");
