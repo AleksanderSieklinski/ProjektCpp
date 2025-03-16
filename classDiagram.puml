@@ -1,0 +1,120 @@
+@startuml
+
+class Position {
+    int x
+    int y
+    +operator==(Position): bool
+    +operator!=(Position): bool
+    +operator<(Position): bool
+}
+
+abstract class Entity {
+    +getPosition(): Position
+    +move(Direction)
+}
+
+enum Direction {
+    UP
+    DOWN
+    LEFT
+    RIGHT
+}
+
+class SensorData {
+    bool frontObstacle
+    bool leftObstacle
+    bool rightObstacle
+    bool backObstacle
+}
+
+class Maze {
+    int width
+    int height
+    vector<vector<int>> mazeLayout
+    Position destination
+    +Maze(int, int)
+    +generateMazePrim()
+    +isMoveValid(int, int): bool
+    +printMaze(Position): void
+    +getMazeLayout(): vector<vector<int>>
+    +isMazeSolved(Position): bool
+    +getDestination(): Position
+    +uploadMazeLayout(vector<vector<int>>): bool
+    +generateEmptyMaze(): void
+    +addWall(int, int): void
+    +setDestination(int, int): void
+}
+
+class Mouse {
+    Position position
+    Maze &maze
+    Maze &knownMaze
+    Logger<T> &logger
+    vector<Position> path
+    vector<SensorData> obstacles
+    +Mouse(const Maze&, Logger<string>&, Maze&)
+    +makeDecision(SensorData): void
+    +move(Direction): void
+    +getPosition(): Position
+    +findPath(Position, Position): vector<Position>
+    +calculateShortestPath(): void
+    +reset(): void
+    +walkMazeStep(Logger<string>&, set<Position, less<Position>>&): void
+}
+
+class Logger<T> {
+    string logFilePath
+    ofstream logFile
+    +Logger(string)
+    +logData(T)
+    +readLog(): void
+}
+
+class MainWindow {
+    QGraphicsView *view
+    QGraphicsScene *scene
+    QPushButton *startButton
+    QPushButton *stopButton
+    QPushButton *generateButton
+    QLabel *statusLabel
+    QLabel *positionLabel
+    QLabel *visitedLabel
+    QLabel *timeLabel
+    QTimer *timer
+    int elapsedTime
+    int moveCount
+    bool exploring
+    SimulationState currentState
+    Maze &maze
+    Maze &emptyMaze
+    Logger<string> &logger
+    Mouse *mouse
+    +MainWindow(QWidget*, Maze&, Maze&, Logger<string>&, Mouse*)
+    +drawMaze(vector<vector<int>> const&, Position const&, Position const&): void
+    +updatePositionLabel(Position const&): void
+    +updateVisitedLabel(int): void
+    +updateStatusLabel(SimulationState): void
+    +getStartButton(): QPushButton*
+    +getStopButton(): QPushButton*
+    +getGenerateButton(): QPushButton*
+    +startSimulation(): void
+    +stopSimulation(): void
+    +updateMaze(): void
+    +updateTimer(): void
+    +isExploring(): bool
+    +resetData(): void
+    +getCurrentState(): SimulationState
+}
+
+Entity <|-- Mouse
+Mouse --> Maze
+Mouse --> SensorData
+Mouse --> Logger
+Maze --> Position
+Entity --> Direction
+Mouse --> Direction
+MainWindow --> Maze
+MainWindow --> Logger
+MainWindow --> Mouse
+
+@enduml
