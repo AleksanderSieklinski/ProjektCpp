@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent, Maze &maze, Maze &emptyMaze, Logger<std::string> &logger, Mouse *mouse)
-    : QMainWindow(parent), elapsedTime(0), moveCount(0), exploring(false), maze(maze), emptyMaze(emptyMaze), logger(logger), mouse(mouse) {
+MainWindow::MainWindow(QWidget *parent, Controller *controller)
+    : QMainWindow(parent), controller(controller) {
     QWidget *centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
     QHBoxLayout *mainLayout = new QHBoxLayout(centralWidget);
@@ -74,9 +74,9 @@ MainWindow::MainWindow(QWidget *parent, Maze &maze, Maze &emptyMaze, Logger<std:
 
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &MainWindow::updateTimer);
-    connect(startButton, &QPushButton::clicked, this, &MainWindow::startSimulation);
-    connect(stopButton, &QPushButton::clicked, this, &MainWindow::stopSimulation);
-    connect(generateButton, &QPushButton::clicked, this, &MainWindow::updateMaze);
+    connect(startButton, &QPushButton::clicked, this, &MainWindow::onStart);
+    connect(stopButton, &QPushButton::clicked, this, &MainWindow::onStop);
+    connect(generateButton, &QPushButton::clicked, this, &MainWindow::onUpdate);
 }
 
 QPushButton* MainWindow::getStartButton() {
@@ -139,14 +139,13 @@ void MainWindow::updateVisitedLabel(int visitedFields) {
 }
 
 void MainWindow::updateStatusLabel(SimulationState state) {
+    controller->changePhase(state);
     switch (state) {
         case SimulationState::NotStarted:
             statusLabel->setText("Etap: Oczekiwanie");
-            exploring = false;
             break;
         case SimulationState::Exploring:
             statusLabel->setText("Etap: Eksploracja");
-            exploring = true;
             break;
         case SimulationState::Returning:
             statusLabel->setText("Etap: Powrót");
@@ -156,51 +155,35 @@ void MainWindow::updateStatusLabel(SimulationState state) {
             break;
         case SimulationState::Finished:
             statusLabel->setText("Etap: Zakończony");
-            exploring = false;
             break;
     }
 }
 
-void MainWindow::startSimulation() {
+void MainWindow::onStart() {
+    controller->startSimulation();
     updateStatusLabel(SimulationState::Exploring);
-    resetData();
     timer->start(250);
 }
 
-void MainWindow::stopSimulation() {
+void MainWindow::onStop() {
+    controller->stopSimulation();
     timer->stop();
     updateStatusLabel(SimulationState::NotStarted);
-    resetData();
 }
 
-void MainWindow::updateMaze() {
-    Maze newMaze = Maze(maze.getMazeLayout().size(), maze.getMazeLayout()[0].size());
-    maze.uploadMazeLayout(newMaze.getMazeLayout());
-    maze.generateMazePrim();
-    mouse->reset();
-    drawMaze(maze.getMazeLayout(), mouse->getPosition(), maze.getDestination());
+void MainWindow::onUpdate() {
+    controller->updateMaze();
+    drawMaze(controller->getMazeLayout(), controller->getMousePosition(), controller->getMazeDestination());
 }
 
 void MainWindow::updateTimer() {
-    elapsedTime++;
-    timeLabel->setText("Czas: " + QString::number(elapsedTime) + " ticks");
-}
-
-bool MainWindow::isExploring() {
-    return exploring;
+    controller->updateTimer();
+    timeLabel->setText("Czas: " + QString::number(controller->getElapsedTime()) + " ticks");
 }
 
 void MainWindow::resetData() {
-    elapsedTime = 0;
-    moveCount = 0;
+    controller->resetData();
     updatePositionLabel({0, 0});
     updateVisitedLabel(0);
-    timeLabel->setText("Czas: 0 ticks");
-    maze.generateMazePrim();
-    mouse->reset();
-    drawMaze(maze.getMazeLayout(), mouse->getPosition(), maze.getDestination());
-}
-
-SimulationState MainWindow::getCurrentState() {
-    return currentState;
+    drawMaze(controller->getMazeLayout(), controller->getMousePosition(), controller->getMazeDestination());
 }

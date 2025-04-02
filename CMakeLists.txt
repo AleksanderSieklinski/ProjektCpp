@@ -32,6 +32,10 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         position.h
         oldmain.cpp
         resources.qrc
+        controller.h controller.cpp
+        mazegenerator.h
+        mazegeneratorprim.h mazegeneratorprim.cpp
+        mazegeneratorempty.h mazegeneratorempty.cpp
 
     )
 # Define target properties for Android with Qt 6 as:

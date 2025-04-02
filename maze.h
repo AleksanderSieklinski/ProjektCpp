@@ -19,16 +19,6 @@ public:
     Maze(int width, int height);
 
     /**
-     * @brief Generates the maze layout using the prim algorithm.
-     */
-    void generateMazePrim();
-
-    /**
-    *  @brief Generates an empty maze layout.
-    */
-    void generateEmptyMaze();
-
-    /**
     *  @brief Adds a wall to the maze layout.
     *  @param x The x coordinate of the wall.
     *  @param y The y coordinate of the wall.
@@ -36,24 +26,10 @@ public:
     void addWall(int x, int y);
 
     /**
-     * @brief Checks if a move is valid.
-     * @param x The x coordinate of the move.
-     * @param y The y coordinate of the move.
-     * @return True if the move is valid, false otherwise.
-     */
-    bool isMoveValid(int x, int y) const;
-
-    /**
      * @brief Prints the maze layout.
      * @param mousePosition The current position of the mouse.
      */
     void printMaze(const Position& mousePosition) const;
-
-    /**
-     * @brief Gets the maze layout.
-     * @return A reference to the maze layout.
-     */
-    const std::vector<std::vector<int>>& getMazeLayout() const;
 
     /**
      * @brief Checks if the maze is solved.
@@ -63,10 +39,10 @@ public:
     bool isMazeSolved(const Position& mousePosition) const;
 
     /**
-     * @brief Gets the destination position in the maze.
-     * @return The destination position.
+     * @brief Gets the maze layout.
+     * @return A reference to the maze layout.
      */
-    Position getDestination() const;
+    const std::vector<std::vector<int>>& getMazeLayout() const;
 
     /**
      * @brief Uploads a custom maze layout.
@@ -74,6 +50,13 @@ public:
      * @return True if the upload was successful, false otherwise.
      */
     bool uploadMazeLayout(const std::vector<std::vector<int>>& customLayout);
+
+    /**
+     * @brief Gets the destination position in the maze.
+     * @return The destination position.
+     */
+    Position getDestination() const;
+
     /**
      * @brief Change the destination of the maze.
      * @param x The x coordinate of the destination.
@@ -82,8 +65,6 @@ public:
     void setDestination(int x, int y);
 
 protected:
-    int width; ///< The width of the maze
-    int height; ///< The height of the maze
     std::vector<std::vector<int>> mazeLayout; ///< The layout of the maze
     Position destination; ///< The destination position in the maze
 };

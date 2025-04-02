@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include "mouse.h"
+#include "controller.h"
 #include <QMainWindow>
 #include <QGraphicsView>
 #include <QGraphicsScene>
@@ -18,23 +19,10 @@
 #include <QPalette>
 
 /** 
-* @brief Enum class for the state of the simulation
-*
-* This enum class is used to represent the state of the simulation.
-* The simulation can be in one of the following states: NotStarted, Exploring, Returning, Running, Finished.
-*/
-enum class SimulationState {
-    NotStarted,
-    Exploring,
-    Returning,
-    Running,
-    Finished
-};
-/** 
 * @brief Class for the main window of the application
 * 
 * This class is responsible for creating the main window of the application and handling the user interface.
-* It contains the maze, the mouse, the logger and the buttons for starting, stopping and generating the maze.
+* It contains the buttons for starting, stopping and generating the maze.
 * It also contains the labels for the mouse position, the number of visited fields and the status of the simulation.
 * The main window is updated by the simulation class.
 */
@@ -45,12 +33,9 @@ public:
     /**
     * @brief Constructor for MainWindow.
     * @param parent The parent widget.
-    * @param maze The maze the mouse is navigating.
-    * @param emptyMaze The empty maze for generating new mazes.
-    * @param logger The logger for logging mouse actions.
-    * @param mouse The mouse navigating through the maze.
+    * @param controller The controller for handling the simulation logic.
     */
-    MainWindow(QWidget *parent, Maze &maze, Maze &emptyMaze, Logger<std::string> &logger, Mouse *mouse);
+    MainWindow(QWidget *parent, Controller *controller);
     /**
     * @brief Draws the maze on the main window.
     * @param maze The maze to draw.
@@ -74,6 +59,10 @@ public:
     */
     void updateStatusLabel(SimulationState state);
     /**
+    * @brief Updates the timer for the simulation.
+    */
+    void updateTimer();
+    /**
     * @brief Gets the button for starting the simulation.
     * @return The button for starting the simulation.
     */
@@ -88,38 +77,22 @@ public:
     * @return The button for generating a new maze.
     */
     QPushButton* getGenerateButton();
-
-public slots:
     /**
     * @brief Starts the simulation.
     */
-    void startSimulation();
+    void onStart();
     /**
     * @brief Stops the simulation.
     */
-    void stopSimulation();
+    void onStop();
     /**
     * @brief Generates a new maze.
     */
-    void updateMaze();
-    /**
-    * @brief Updates the timer for the simulation.
-    */
-    void updateTimer();
-    /**
-    * @brief Checks if the mouse is exploring the maze.
-    * @return True if the mouse is exploring the maze, false otherwise.
-    */
-    bool isExploring();
+    void onUpdate();
     /**
     * @brief Resets the data of the main window and simulation.
     */
     void resetData();
-    /**
-    * @brief Gets the current state of the simulation.
-    * @return The current state of the simulation.
-    */
-    SimulationState getCurrentState();
 
 private:
     QGraphicsView *view; ///< The view for the maze.
@@ -132,14 +105,7 @@ private:
     QLabel *visitedLabel; ///< The label for the number of visited fields.
     QLabel *timeLabel; ///< The label for the time elapsed.
     QTimer *timer; ///< The timer for updating the simulation.
-    int elapsedTime; ///< The time elapsed since the start of the simulation.
-    int moveCount; ///< The number of moves made by the mouse.
-    bool exploring; ///< Flag indicating whether the mouse is moving inside the maze.
-    SimulationState currentState; ///< The current state of the simulation
-    Maze &maze; ///< The maze the mouse is navigating.
-    Maze &emptyMaze; ///< The empty maze for generating new mazes.
-    Logger<std::string> &logger; ///< The logger for logging mouse actions.
-    Mouse *mouse; ///< The mouse navigating through the maze.
+    Controller *controller; ///< The controller for handling the simulation logic.
 };
 
 #endif // MAINWINDOW_H
