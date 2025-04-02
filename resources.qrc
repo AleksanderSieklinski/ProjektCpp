@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>images/mouse.webp</file>
         <file>images/mouse.jpg</file>
         <file>images/wall.jpg</file>
         <file>images/cheese.jpg</file>
